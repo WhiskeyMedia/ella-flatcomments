@@ -1,5 +1,8 @@
+from datetime import datetime, timedelta
+
 from redis import Redis
 
+from django.conf import settings
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
@@ -16,6 +19,9 @@ from ella_flatcomments.signals import comment_was_moderated, comment_will_be_pos
 from ella_flatcomments.conf import comments_settings
 
 redis = Redis(**comments_settings.REDIS)
+
+EDIT_TIMER_MINUTES = getattr(settings, 'EDIT_TIMER_MINUTES', 15)
+
 
 class CommentList(object):
     @classmethod
@@ -178,3 +184,29 @@ class FlatComment(models.Model):
         if self.submit_date is None:
             self.submit_date = timezone.now()
         super(FlatComment, self).save(**kwargs)
+
+    def is_edit_timer_expired(self):
+        '''is_edit_timer_expired() -> bool
+        Check whether the comment is still within the allowed edit time
+        from the creation time.
+        '''
+        age = datetime.now(self.submit_date.tzinfo) - self.submit_date
+        if age >= timedelta(minutes=EDIT_TIMER_MINUTES):
+            return True
+        return False
+        
+    def get_remaining_edit_time(self):
+        '''get_remaining_edit_time() -> str
+        Returns the remaining edit time from comment creation. The returned
+        string is formatted as HH:MM:SS, e.g. 0:01:23
+        '''
+        age = datetime.now(self.submit_date.tzinfo) - self.submit_date
+        edit_time = timedelta(minutes=EDIT_TIMER_MINUTES)
+        if age >= edit_time:
+            return '0:00:00'
+        seconds = edit_time.total_seconds() - age.total_seconds()
+        remaining = timedelta(seconds=seconds)
+        text = str(remaining)
+        text = text.split('.')[0]
+        return text
+

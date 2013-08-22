@@ -73,6 +73,13 @@ def post_comment(request, context, comment_id=None):
         if comment.user != request.user and not comments_settings.IS_MODERATOR_FUNC(request.user):
             return HttpResponseForbidden("You cannot edit other people's comments.")
 
+        # Don't allow users to edit a comment after the allowed edit time has expired
+        if comment.user == request.user and not comments_settings.IS_MODERATOR_FUNC(request.user) and comment.is_edit_timer_expired():
+            if request.is_ajax():
+                context.update({'comment': comment})
+                return TemplateResponse(request, get_template('comment_detail_async.html', context['object']), context)
+            return HttpResponseForbidden("The allowed time to edit the comment has expired.")
+
     data, files = None, None
     if request.method == 'POST':
         data, files = request.POST, request.FILES
