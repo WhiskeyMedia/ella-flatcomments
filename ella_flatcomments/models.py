@@ -20,6 +20,7 @@ from ella_flatcomments.conf import comments_settings
 
 redis = Redis(**comments_settings.REDIS)
 
+EDIT_TIMER_ENABLED = getattr(settings, 'EDIT_TIMER_ENABLED', False)
 EDIT_TIMER_MINUTES = getattr(settings, 'EDIT_TIMER_MINUTES', 15)
 
 
@@ -184,6 +185,11 @@ class FlatComment(models.Model):
         if self.submit_date is None:
             self.submit_date = timezone.now()
         super(FlatComment, self).save(**kwargs)
+
+    def has_edit_timer(self):
+        '''has_edit_timer() -> bool
+        '''
+        return EDIT_TIMER_ENABLED
 
     def is_edit_timer_expired(self):
         '''is_edit_timer_expired() -> bool
