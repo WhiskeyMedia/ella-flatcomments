@@ -135,6 +135,13 @@ class CommentList(object):
         redis.lrem(self._key, comment.id)
         comment_was_moderated.send(FlatComment, comment=comment, user=user)
 
+    def reinstate_comment(self, comment, request=None):
+        # comments are removed from the redis cache when moderated
+        # to be visible again, they must be reinstated as well
+        redis.lrem(self._key, comment.id)
+        redis.lpush(self._key, comment.id)
+        return True, None
+
     def locked(self):
         return redis.sismember(comments_settings.LOCKED_KEY, self._id)
 
@@ -164,6 +171,10 @@ class FlatComment(models.Model):
         if not hasattr(self, '__comment_list'):
             self.__comment_list = CommentList(self.content_type, self.object_id, reversed)
         return self.__comment_list
+
+    def reinstate(self, request=None):
+        # re instate this comment for a user who has been unbanned
+        return self._comment_list().reinstate_comment(self, request)
 
     def post(self, request=None):
         return self._comment_list().post_comment(self, request)
