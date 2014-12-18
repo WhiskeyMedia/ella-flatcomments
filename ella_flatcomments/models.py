@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from ella.utils.timezone import now
 from redis import Redis
 
 from django.conf import settings
@@ -179,7 +178,7 @@ class FlatComment(models.Model):
     def post(self, request=None):
         # update TESTED-442
         # must provide temporary submit_date to check if the comment is flooding
-        self.submit_date = now()
+        self.submit_date = timezone.now()
         return self._comment_list().post_comment(self, request)
 
     def moderate(self, user=None, commit=True):
