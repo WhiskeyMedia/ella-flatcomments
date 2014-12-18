@@ -19,8 +19,8 @@ from ella_flatcomments.conf import comments_settings
 
 redis = Redis(**comments_settings.REDIS)
 
-EDIT_TIMER_ENABLED = getattr(settings, 'EDIT_TIMER_ENABLED', False)
-EDIT_TIMER_MINUTES = getattr(settings, 'EDIT_TIMER_MINUTES', 15)
+EDIT_TIMER_ENABLED = getattr(comments_settings, 'EDIT_TIMER_ENABLED', False)
+EDIT_TIMER_MINUTES = getattr(comments_settings, 'EDIT_TIMER_MINUTES', 15)
 
 
 class CommentList(object):
@@ -176,7 +176,6 @@ class FlatComment(models.Model):
         return self._comment_list().reinstate_comment(self, request)
 
     def post(self, request=None):
-        # update TESTED-442
         # must provide temporary submit_date to check if the comment is flooding
         self.submit_date = timezone.now()
         return self._comment_list().post_comment(self, request)
@@ -209,7 +208,7 @@ class FlatComment(models.Model):
         Check whether the comment is still within the allowed edit time
         from the creation time.
         '''
-        age = datetime.now(self.submit_date.tzinfo) - self.submit_date
+        age = timezone.now() - self.submit_date
         if age >= timedelta(minutes=EDIT_TIMER_MINUTES):
             return True
         return False
@@ -219,7 +218,7 @@ class FlatComment(models.Model):
         Returns the remaining edit time from comment creation. The returned
         string is formatted as HH:MM:SS, e.g. 0:01:23
         '''
-        age = datetime.now(self.submit_date.tzinfo) - self.submit_date
+        age = timezone.now() - self.submit_date
         edit_time = timedelta(minutes=EDIT_TIMER_MINUTES)
         if age >= edit_time:
             return '0:00:00'

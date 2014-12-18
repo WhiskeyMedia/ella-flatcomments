@@ -17,4 +17,7 @@ PAGINATE_BY = 10
 
 IS_MODERATOR_FUNC = lambda u: u.is_staff
 
+EDIT_TIMER_ENABLED = False
+EDIT_TIMER_MINUTES = 15
+
 comments_settings = Settings('ella_flatcomments.conf', 'COMMENTS')
