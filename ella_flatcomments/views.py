@@ -83,8 +83,7 @@ def post_comment(request, context, comment_id=None):
     data, files = None, None
     if request.method == 'POST':
         data, files = request.POST, request.FILES
-
-    form = FlatCommentMultiForm(context['object'], user, data=data, files=files, instance=comment)
+    form = FlatCommentMultiForm(context['object'], user, data=data, files=files, instance=comment, request=request)
     if form.is_valid():
         comment, success, reason = form.post()
         if not success:

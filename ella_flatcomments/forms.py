@@ -15,6 +15,7 @@ class FlatCommentForm(ModelForm):
     def __init__(self, content_object, user, *args, **kwargs):
         self.content_object = content_object
         self.user = user
+        self.request = kwargs.pop('request', None)
         super(FlatCommentForm, self).__init__(*args, **kwargs)
 
         # store the auto fields on the comment instance directly
@@ -40,5 +41,5 @@ class FlatCommentMultiForm(MultiForm):
 
     def post(self):
         comment = super(FlatCommentMultiForm, self).save(commit=False)
-        success, reason = comment.post()
+        success, reason = comment.post(request=getattr(self.model_form, 'request', None))
         return comment, success, reason
