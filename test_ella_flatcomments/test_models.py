@@ -1,9 +1,11 @@
 from django.contrib.contenttypes.models import ContentType
+from django.test.client import RequestFactory
 
 from ella.core.cache.utils import SKIP
 
 from ella_flatcomments.models import FlatComment, CommentList
 from ella_flatcomments.conf import comments_settings
+from ella_flatcomments.forms import FlatCommentMultiForm, FlatCommentForm
 
 from test_ella_flatcomments.cases import CommentTestCase, PublishableTestCase
 
@@ -148,3 +150,26 @@ class TestCommentList(CommentTestCase):
         tools.assert_false(success)
         tools.assert_equals(11, self.comment_list.count())
 
+class TestFlatCommentForm(CommentTestCase):
+    """ Assert that a FlatCommentMultiForm accepts a request as a parameter
+        and that this is passed to its child FlatCommentForm for later use
+    """
+    def test_flatcomment_form_with_request_passthrough(self):
+        request = RequestFactory().post('/', {})
+        form = FlatCommentForm(self.content_object, self.user, request=request)
+        tools.assert_equals(form.request, request)
+
+    def test_flatcomment_form_without_request_passthrough(self):
+        form = FlatCommentForm(self.content_object, self.user, data={}, instance=self.comment_list.last_comment())
+        tools.assert_is_none(form.request)
+
+    def test_flatcomment_multiform_with_request_passthrough(self):
+        request = RequestFactory().post('/', {})
+        form = FlatCommentMultiForm(self.content_object, self.user, data={}, instance=self.comment_list.last_comment(), request=request)
+        tools.assert_is_instance(form.model_form, FlatCommentForm)
+        tools.assert_equals(form.model_form.request, request)
+
+    def test_flatcomment_multiform_without_request_passthrough(self):
+        form = FlatCommentMultiForm(self.content_object, self.user, data={}, instance=self.comment_list.last_comment())
+        tools.assert_is_instance(form.model_form, FlatCommentForm)
+        tools.assert_is_none(form.model_form.request)

@@ -12,10 +12,10 @@ class FlatCommentForm(ModelForm):
         label='If you enter anything in this field your comment will be treated as spam'
     )
 
-    def __init__(self, content_object, user, *args, **kwargs):
+    def __init__(self, content_object, user, request=None, *args, **kwargs):
         self.content_object = content_object
         self.user = user
-        self.request = kwargs.pop('request', None)
+        self.request = request
         super(FlatCommentForm, self).__init__(*args, **kwargs)
 
         # store the auto fields on the comment instance directly
