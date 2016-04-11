@@ -3,7 +3,6 @@ include INSTALL
 include LICENSE
 include MANIFEST.in
 include README.rst
-include README
 include dev_requirements.txt
 include requirements.txt
 recursive-include doc *
