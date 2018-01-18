@@ -114,10 +114,10 @@ class CommentList(object):
                 return False, "comment_will_be_posted receiver %r killed the comment" % receiver.__name__
         new = not bool(comment.pk)
         comment.save()
-        if new and comment.is_public:
+        # if new and comment.is_public:
             # add comment to redis
-            redis.lpush(self._key, comment.id)
-            comment_was_posted.send(FlatComment, comment=comment, request=request)
+        redis.lpush(self._key, comment.id)
+        comment_was_posted.send(FlatComment, comment=comment, request=request)
         return True, None
 
     def moderate_comment(self, comment, user=None, commit=True):
